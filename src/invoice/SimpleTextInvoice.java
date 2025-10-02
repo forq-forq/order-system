@@ -23,6 +23,5 @@ public class SimpleTextInvoice implements InvoiceRenderer {
     result += "PAID: " + order.isPaid() + "\n";
 
     return result;
-}
-
+    }
 }
