@@ -1,10 +1,8 @@
 package app;
 
 import domain.*;
-import invoice.SimpleTextInvoice;
-import notify.EmailNotifier;
-import payment.FakeStripeGateway;
-import policy.PercentageOverThreshold;
+import market_abstract_factory.*;
+import policy_factory.*;
 import repo.InMemoryOrderRepo;
 import service.*;
 
@@ -23,10 +21,22 @@ public class Main {
 
         Order order = new Order("ord-1001", cust, items);
 
+        // Initialize all the factories
+        DiscountFactory discountFactory = new ThresholdDiscountFactory(100.0, 10.0);
+
+        // Initialize the type of market
+        MarketFactory factory = new StandardMarketFactory(discountFactory);
+
         InMemoryOrderRepo repo = new InMemoryOrderRepo();
-        PricingService pricing = new PricingService(new PercentageOverThreshold(100.0, 10.0));
-        PaymentService payments = new PaymentService(new FakeStripeGateway(), repo);
-        CheckoutService checkout = new CheckoutService(pricing, payments, new EmailNotifier(), new SimpleTextInvoice(), repo);
+        PricingService pricing = new PricingService(factory.createDiscountPolicy());
+        PaymentService payments = new PaymentService(factory.createPaymentGateway(), repo);
+        CheckoutService checkout = new CheckoutService(
+                pricing, 
+                payments, 
+                factory.createNotifier(), 
+                factory.createInvoiceRenderer(), 
+                repo
+        );
 
         String tx = checkout.checkout(order);
         System.out.println("\nTX = " + tx);
