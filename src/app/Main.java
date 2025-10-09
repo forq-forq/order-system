@@ -5,8 +5,7 @@ import market_abstract_factory.*;
 import policy_factory.*;
 import repo.InMemoryOrderRepo;
 import service.*;
-
-import java.util.ArrayList;
+import domain.builder.OrderBuilder;
 
 public class Main {
     public static void main(String[] args) {
@@ -14,12 +13,16 @@ public class Main {
 
         Product p1 = new Product("SKU-1", "Keyboard", 50.0);
         Product p2 = new Product("SKU-2", "Mouse", 30.0);
-
-        ArrayList<OrderItem> items = new ArrayList<>();
-        items.add(new OrderItem(p1, 2));
-        items.add(new OrderItem(p2, 1));
-
-        Order order = new Order("ord-1001", cust, items);
+        Product p3 = p1.clonePrototype();
+        p3.setSku("SKU-3"); p3.setPrice(60.0);
+        
+        Order order = new OrderBuilder()
+                .id("ord-1001")
+                .forCustomer(cust)
+                .addItem(p1, 2)
+                .addItem(p2, 1)
+                .addItem(p3, 3)
+                .build();
 
         // Initialize all the factories
         DiscountFactory discountFactory = new ThresholdDiscountFactory(100.0, 10.0);
@@ -27,7 +30,7 @@ public class Main {
         // Initialize the type of market
         MarketFactory factory = new StandardMarketFactory(discountFactory);
 
-        InMemoryOrderRepo repo = new InMemoryOrderRepo();
+        InMemoryOrderRepo repo = InMemoryOrderRepo.getInstance();
         PricingService pricing = new PricingService(factory.createDiscountPolicy());
         PaymentService payments = new PaymentService(factory.createPaymentGateway(), repo);
         CheckoutService checkout = new CheckoutService(
