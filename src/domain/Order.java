@@ -1,8 +1,9 @@
 package domain;
 
+import domain.prototype.Prototype;
 import java.util.ArrayList;
 
-public class Order {
+public class Order implements Prototype<Order> {
     private final String id;                     // order id
     private final Customer customer;             // customer reference
     private final ArrayList<OrderItem> items;    // order id
@@ -20,6 +21,15 @@ public class Order {
         this.discount = 0.0;
         this.total = 0.0;
         this.paid = false;
+    }
+
+    @Override
+    public Order clonePrototype() {
+        ArrayList<OrderItem> clonedItems = new ArrayList<>();
+        for (OrderItem item : items) {
+            clonedItems.add(new OrderItem(item.getProduct(), item.getQty()));
+        }
+        return new Order(this.id + "-copy", this.customer, clonedItems);
     }
 
     public String getId() { return id; }

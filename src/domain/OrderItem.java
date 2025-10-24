@@ -8,6 +8,7 @@ public class OrderItem {
         this.product = product;
         this.qty = qty;
     }
+    
     public Product getProduct() { return product; }
     public int getQty() { return qty; }
 }
