@@ -23,13 +23,16 @@ public class Main {
                 .addItem(p2, 1)
                 .addItem(p3, 3)
                 .build();
-
+        /* 
         // Initialize all the factories
         DiscountFactory discountFactory = new ThresholdDiscountFactory(100.0, 10.0);
 
         // Initialize the type of market
         MarketFactory factory = new StandardMarketFactory(discountFactory);
+        */
 
+        MarketFactory factory = new PayPalMarketFactory();
+        
         InMemoryOrderRepo repo = InMemoryOrderRepo.getInstance();
         PricingService pricing = new PricingService(factory.createDiscountPolicy());
         PaymentService payments = new PaymentService(factory.createPaymentGateway(), repo);

@@ -20,7 +20,7 @@ public class StandardMarketFactory implements MarketFactory {
 
     @Override
     public PaymentGateway createPaymentGateway() {
-        return new AmazonStripeGateway();
+        return new CommonPayment();
     }
 
     @Override
@@ -30,6 +30,7 @@ public class StandardMarketFactory implements MarketFactory {
 
     @Override
     public InvoiceRenderer createInvoiceRenderer() {
-        return new SimpleTextInvoice();
+        return new BridgeInvoiceRenderer(new SimpleTextInvoiceFormat());
+        
     }
 }
