@@ -2,6 +2,9 @@ package market_abstract_factory;
 
 import invoice.*;
 import notify.*;
+import notify.decorators.LoggingNotifier;
+import notify.decorators.PushNotifier;
+import notify.decorators.SMSNotifier;
 import payment.*;
 import policy.*;
 import policy_factory.*;
@@ -25,7 +28,7 @@ public class StandardMarketFactory implements MarketFactory {
 
     @Override
     public Notifier createNotifier() {
-        return new EmailNotifier();
+        return new LoggingNotifier(new SMSNotifier(new PushNotifier(new EmailNotifier())));
     }
 
     @Override
