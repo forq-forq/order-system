@@ -2,10 +2,10 @@ package domain;
 
 import java.util.ArrayList;
 
-public class BundleProduct extends Product {
+public class BasketProduct extends Product {
     private ArrayList<Product> components;
 
-    public BundleProduct(String sku, String name) {
+    public BasketProduct(String sku, String name) {
         super(sku, name, 0.0);
         this.components = new ArrayList<>();
     }

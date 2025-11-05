@@ -3,17 +3,27 @@ package market_abstract_factory;
 import invoice.*;
 import notify.*;
 import payment.*;
+import payment.proxy.*;
 import policy.*;
+import policy_factory.DiscountFactory;
+import repo.InMemoryOrderRepo;
 
 public class PayPalMarketFactory implements MarketFactory {
+    private final DiscountFactory discountFactory;
+
+    public PayPalMarketFactory(DiscountFactory discountFactory) {
+        this.discountFactory = discountFactory;
+    }
+
     @Override
     public DiscountPolicy createDiscountPolicy() {
-        return new NoDiscount();
+        return discountFactory.createPolicy();
     }
 
     @Override
     public PaymentGateway createPaymentGateway() {
-        return new PayPalAdapter(new PayPalPayment());
+        PaymentGateway real = new PayPalAdapter(new PayPalPayment());
+        return new SecurePaymentGateway(real, InMemoryOrderRepo.getInstance());
     }
 
     @Override

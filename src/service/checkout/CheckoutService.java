@@ -1,11 +1,13 @@
-package service;
+package service.checkout;
 
 import domain.Order;
 import invoice.InvoiceRenderer;
 import notify.Notifier;
 import repo.OrderRepository;
+import service.PaymentService;
+import service.PricingService;
 
-public class CheckoutService {
+public class CheckoutService implements CheckoutFacade {
     private final PricingService pricing;          // pricing
     private final PaymentService payments;         // payments
     private final Notifier notifier;               // notify system

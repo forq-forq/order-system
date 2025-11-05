@@ -6,8 +6,10 @@ import notify.decorators.LoggingNotifier;
 import notify.decorators.PushNotifier;
 import notify.decorators.SMSNotifier;
 import payment.*;
+import payment.proxy.SecurePaymentGateway;
 import policy.*;
 import policy_factory.*;
+import repo.InMemoryOrderRepo;
 
 public class StandardMarketFactory implements MarketFactory {
     private final DiscountFactory discountFactory;
@@ -23,7 +25,8 @@ public class StandardMarketFactory implements MarketFactory {
 
     @Override
     public PaymentGateway createPaymentGateway() {
-        return new CommonPayment();
+        PaymentGateway real = new AmazonPayment();
+        return new SecurePaymentGateway(real, InMemoryOrderRepo.getInstance());
     }
 
     @Override

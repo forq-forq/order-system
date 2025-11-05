@@ -6,8 +6,7 @@ public class ThresholdDiscountFactory extends DiscountFactory {
     private final double threshold;
     private final double percent;
 
-    public ThresholdDiscountFactory(double threshold, 
-                                        double percent) {
+    public ThresholdDiscountFactory(double threshold, double percent) {
         this.threshold = threshold;
         this.percent = percent;
     }
