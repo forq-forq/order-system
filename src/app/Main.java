@@ -1,62 +1,57 @@
 package app;
 
 import catalog.ProductFlyweightFactory;
+import command.*;
 import domain.*;
+import domain.builder.OrderBuilder;
 import market_abstract_factory.*;
 import policy_factory.*;
 import repo.InMemoryOrderRepo;
 import service.*;
 import service.checkout.CheckoutService;
-import domain.builder.OrderBuilder;
+import service.chain.*;
 
 public class Main {
     public static void main(String[] args) {
-        Customer cust = new Customer("c1", "240103174@sdu.edu.kz");
+        // initializing customer
+        Customer customer = new Customer("C1", "customer@example.com");
 
-        ProductFlyweightFactory flyweightFactory = new ProductFlyweightFactory();
+        // initializing services
+        ProductFlyweightFactory factory = new ProductFlyweightFactory();
+        MarketFactory market = new StandardMarketFactory(new ThresholdDiscountFactory(100, 10));
+        PricingService pricing = new PricingService(market.createDiscountPolicy());
+        var repo = InMemoryOrderRepo.getInstance();
+        PaymentService payment = new PaymentService(market.createPaymentGateway(), repo);
 
-        FlyweightBackedProduct p1 = new FlyweightBackedProduct(flyweightFactory.get("SKU-001", "Laptop", 1200.0));
-        FlyweightBackedProduct p2 = new FlyweightBackedProduct(flyweightFactory.get("SKU-001", "Laptop", 1200.0));
-        FlyweightBackedProduct p3 = new FlyweightBackedProduct(flyweightFactory.get("SKU-002", "Mouse", 30.0));
+        // creating new products
+        Product keyboard = new FlyweightBackedProduct(factory.get("SKU-1", "Keyboard", 50));
+        Product mouse = new FlyweightBackedProduct(factory.get("SKU-2", "Mouse", 20));
 
-        OrderItem item1 = new OrderItem(p1, 1);
-        OrderItem item2 = new OrderItem(p2, 2);
-        OrderItem item3 = new OrderItem(p3, 1);
+        // creating new order
+        Order order = new OrderBuilder().withId("ORD-1").withCustomer(customer).build();
 
-        BasketProduct a3 = new BasketProduct("SKU-5", "Laptop and Mouse");
-        a3.add(p1);
-        a3.add(p3);
+        // run invoker
+        CommandInvoker invoker = new CommandInvoker();
+        invoker.run(new AddItemCommand(order, new OrderItem(keyboard, 1)));
+        invoker.run(new AddItemCommand(order, new OrderItem(mouse, 2)));
 
-        p3.setSku("SKU-6"); p3.setPrice(60.0);
-        
-        Order order = new OrderBuilder()
-                .id("ord-1001")
-                .forCustomer(cust)
-                .addItem(item1)
-                .addItem(item2)
-                .addItem(item3)
-                .addItem(a3, 1)
-                .build();
-        
-        // Initialize all the factories
-        DiscountFactory discountFactory = new NoDiscountFactory();
+        // creating chain
+        OrderHandler chain = new ValidateOrderBasicsHandler();
+        chain.setNext(new CheckPositivePricesHandler())
+             .setNext(new SimpleFraudCheckHandler());
 
-        // Initialize the type of market
-        MarketFactory factory = new PayPalMarketFactory(discountFactory);
-        
-        InMemoryOrderRepo repo = InMemoryOrderRepo.getInstance();
-        PricingService pricing = new PricingService(factory.createDiscountPolicy());
-        PaymentService payments = new PaymentService(factory.createPaymentGateway(), repo);
-
+        // running last checkout service
         CheckoutService checkout = new CheckoutService(
-                pricing, 
-                payments, 
-                factory.createNotifier(), 
-                factory.createInvoiceRenderer(), 
-                repo
+                pricing,
+                payment,
+                market.createNotifier(),
+                market.createInvoiceRenderer(),
+                repo,
+                chain
         );
 
+        // 
         String tx = checkout.checkout(order);
-        System.out.println("\nTX = " + tx);
+        System.out.println("Transaction ID: " + tx);
     }
 }

@@ -16,19 +16,13 @@ public class SecurePaymentGateway implements PaymentGateway {
     @Override
     public String pay(String orderId, double amount) {
         Order order = repo.get(orderId);
-        if (order == null) {
-            throw new IllegalArgumentException("Order not found: " + orderId);
-        }
-        if (order.isPaid()) {
-            throw new IllegalStateException("Order already paid: " + orderId);
-        }
-        if (amount <= 0) {
-            throw new IllegalArgumentException("Invalid amount: " + amount);
-        }
+        if (order == null) throw new IllegalArgumentException("Order not found: " + orderId);
+        if (order.isPaid()) throw new IllegalStateException("Order already paid: " + orderId);
+        if (amount <= 0) throw new IllegalArgumentException("Invalid amount: " + amount);
 
-        System.out.println("[Proxy] Processing payment for order " + orderId + " amount $" + amount);
+        System.out.println("[Proxy] Authorizing payment for order " + orderId + ", $" + amount);
         String tx = realGateway.pay(orderId, amount);
-        System.out.println("[Proxy] Payment completed, transaction id: " + tx);
+        System.out.println("[Proxy] Transaction approved, id = " + tx);
         return tx;
     }
 }
